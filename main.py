@@ -1,14 +1,5 @@
+# Bluedos 0.2 by @ceigh
 import subprocess
-
-"""def wait(msg):  # Loading animation
-    from threading import Thread
-    def animation(m):
-        from time import sleep
-        from itertools import cycle
-        for c in cycle('-/|\\'):
-            print("%s %s\r" % (m, c), flush=True, end='')
-            sleep(0.2)
-    Thread(target=animation, args=(msg,), daemon=True).start()"""
 
 
 def confirm(question):
@@ -20,20 +11,30 @@ def confirm(question):
             return 1
 
 
+def bye():
+    print("\nBye!")
+    from time import sleep
+    sleep(1)
+    print("\033c")
+
+
 def get_devices():
-    print("Scanning...")
+    print("Scanning...\n")
     hcitool_out = subprocess.check_output(['hcitool', 'scan']).decode()[13:-1]
     devices = [i.split('\t')[1:] for i in hcitool_out.split('\n') if len(hcitool_out) != 0]
     return devices
 
 
 def main():
+    print("\033c")
     devices = get_devices()
     dev_number = len(devices)
     if dev_number == 0:
-        print("\nNo devices around")
+        print("No devices around :(")
         if confirm("Want to try again?"):
             main()
+        else:
+            bye()
     elif dev_number == 1:
         print("Attacking '%s'..." % devices[0][1])
     else:
@@ -48,8 +49,6 @@ def main():
             if target in range(dev_number):
                 break
         print("Attacking '%s'..." % devices[target][1])
-    print("\tDone.")
 
 
-print("\tBluedos 0.2 by @ceigh\n")
 main()
