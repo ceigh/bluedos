@@ -5,7 +5,7 @@ Fortunately, if the sound is broadcast on a Bluetooth device, this simple *Pytho
 **;)**
 
 
-Also you can use it to test your devices for **DOS** attack stability.
+Also you can use it to test your devices for **DoS** attack stability.
 
 ## Requirements
 
