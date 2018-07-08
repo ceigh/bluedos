@@ -28,7 +28,7 @@ Also you can check [Bluedos wiki page](https://gitlab.com/ceigh/bluedos/wikis).
 
 This project is [licensed](https://gitlab.com/ceigh/bluedos/blob/master/LICENSE) under the GNU General Public License v3.0
 
-##Versioning
+## Versioning
 
 This project using [Semantic Versioning](https://semver.org)
 
