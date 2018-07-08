@@ -1,5 +1,8 @@
 # coding=utf-8
-"""Here are the functions of the interface.
+"""Simple interface module.
+
+Simple functions are placed in a separate module
+so as not to contaminate the main program.
 
 bye()               Exit from the program.
 confirm(question)   Receives an answer to the question.
@@ -11,22 +14,21 @@ def bye():
     """Friendly exit from the program."""
     from time import sleep
     print("\nBye!")
-    sleep(1)
+    sleep(0.8)
     print('\033c')  # Clear screen
-    exit(0)
 
 
 def confirm(question: str) -> bool:
     """Gets the user's response and interprets it in a boolean value.
 
-    :param question: string with '?' at the end (for better readability).
+    :param question: string with '?' at the end (for readability).
     :return: True/False
 
     """
     try:
-        reply = input(f"{question} ").lower()[:1]
+        reply = input(f"{question}: ").lower()[:1]
         while True:
-            if reply in 'yjsd':  # international (yes, ja, si, da); <Enter> also here
+            if reply in 'yjsd':  # (yes, ja, si, da); <Enter> also here
                 return True
             elif reply == 'n':
                 return False

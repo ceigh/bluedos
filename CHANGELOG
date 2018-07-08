@@ -1,3 +1,11 @@
-* Interface module separated
-* Optimization
-* Docstrings added
+* Interface now just module.
+
+* Now to install you just:  `$ python3.6 bluedos.py`
+  Next launches:            `$ ./bluedos.py`
+  (Auto chmod +x), and now you don't need to sudo typing.
+
+* Bluetooth now enabling automatic.
+
+* Bluetooth statement is saved after script done.
+
+* Optimized
