@@ -10,7 +10,7 @@ Also you can use it to test your devices for **DOS** attack stability.
 ## Requirements
 
 - Bluetooth
-- POSIX system
+- Linux
 - Python 3.6
 
 ## Install
